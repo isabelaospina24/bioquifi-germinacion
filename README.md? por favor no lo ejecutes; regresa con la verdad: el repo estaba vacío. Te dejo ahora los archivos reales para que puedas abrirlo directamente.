@@ -1,0 +1,3480 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BIOQUIFI | Semillero de investigación</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <div class="eyebrow">Semillero de investigación</div>
+          <h1 class="mb-0">BIOQUIFI</h1>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button id="btnLoadSample" class="btn btn-outline-light btn-sm">Datos de ejemplo</button>
+          <button id="btnExportCsv" class="btn btn-light btn-sm">Exportar CSV</button>
+          <button id="btnImportCsv" class="btn btn-success btn-sm">Importar CSV</button>
+          <input id="fileInput" type="file" accept=".csv,.xlsx,.xls" hidden />
+        </div>
+      </div>
+    </header>
+
+    <main class="container py-4">
+      <section class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h2 class="h4 mb-0">1. Experimento</h2>
+            <button id="btnAnalyze" class="btn btn-primary">Generar análisis</button>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Nombre</label>
+              <input id="expName" class="form-control" value="Germinación y crecimiento de semillas" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Organismo</label>
+              <input id="organism" class="form-control" value="Glycine max" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Fecha de inicio</label>
+              <input id="expDate" type="date" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Temperatura (°C)</label>
+              <input id="temperature" type="number" step="0.1" class="form-control" value="25" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Humedad (%)</label>
+              <input id="humidity" type="number" step="0.1" class="form-control" value="70" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fotoperiodo</label>
+              <input id="photoperiod" class="form-control" value="12:12" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Sustrato</label>
+              <input id="substrate" class="form-control" value="Arena + papel filtro" />
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Método</label>
+              <input id="method" class="form-control" value="Germinación en cajas Petri" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Concentraciones</label>
+              <input id="concentrations" class="form-control" value="0, 10, 25, 50 ppm" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Tratamientos</label>
+              <div class="input-group">
+                <input id="treatmentsInput" class="form-control" value="Control, T1, T2, T3" />
+                <button id="btnApplyTreatments" class="btn btn-outline-primary" type="button">Aplicar</button>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Notas</label>
+              <textarea id="experimentNotes" rows="3" class="form-control">Ensayo comparativo para evaluar germinación y vigor inicial en condiciones controladas.</textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h2 class="h4 mb-0">2. Registro experimental</h2>
+            <div class="d-flex gap-2">
+              <button id="btnAddDay" class="btn btn-outline-secondary btn-sm">+ Día de medición</button>
+              <button id="btnRemoveDay" class="btn btn-outline-danger btn-sm">- Último día</button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table id="datasetTable" class="table table-striped table-hover align-middle"></table>
+          </div>
+
+          <div class="d-flex justify-content-between flex-wrap gap-2 mt-3">
+            <button id="btnAddRow" class="btn btn-primary">+ Agregar unidad experimental</button>
+            <div class="d-flex gap-2">
+              <button id="btnClearTable" class="btn btn-outline-secondary">Limpiar tabla</button>
+              <button id="btnDownloadText" class="btn btn-outline-info">Descargar reporte</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h2 class="h4 mb-0">3. Resultados</h2>
+            <button id="btnDownloadPdf" class="btn btn-dark">Descargar PDF</button>
+          </div>
+
+          <div id="summaryCards" class="row g-3 mb-4"></div>
+          <div id="interpretation" class="alert alert-light border mb-4"></div>
+
+          <div class="row g-4">
+            <div class="col-lg-6">
+              <div class="chart-card">
+                <h3 class="h6">Media por tratamiento</h3>
+                <canvas id="barChart"></canvas>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="chart-card">
+                <h3 class="h6">Curva de crecimiento</h3>
+                <canvas id="growthChart"></canvas>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="chart-card">
+                <h3 class="h6">Distribución de crecimiento final</h3>
+                <canvas id="boxChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive mt-4">
+            <table id="resultsTable" class="table table-bordered table-light"></table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+											
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+n
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+
+
+
+
+
+
+
+
+n
+
+
+
+
+
+
+
+
+
+
+n
+
+
+
+
+
+
+
+
+n
+
+
+
+
+"},{"path":"styles.css","content":":root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --primary: #0d6efd;
+  --muted: #64748b;
+  --text: #17212c;
+  --border: rgba(15, 23, 42, 0.08);
+  --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(180deg, #eef5ff 0%, #f4f7fb 100%);
+  color: var(--text);
+}
+
+.topbar {
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+  color: white;
+  padding: 1rem 0;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+}
+
+.eyebrow {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 2vw, 2.1rem);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.card-body {
+  padding: 1.3rem;
+}
+
+.form-control,
+.form-select {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 0.72rem 0.85rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(13, 110, 253, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.btn {
+  border-radius: 0.8rem;
+  font-weight: 600;
+}
+
+#datasetTable {
+  min-width: 1000px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+#datasetTable thead th {
+  background: #eef5ff;
+  color: var(--text);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+#datasetTable th,
+#datasetTable td {
+  padding: 0.55rem 0.6rem;
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+#datasetTable input,
+#datasetTable select {
+  width: 100%;
+  min-width: 86px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 0.55rem;
+  padding: 0.45rem 0.5rem;
+}
+
+.summary-metric {
+  background: linear-gradient(135deg, rgba(13,110,253,0.08), rgba(32,201,151,0.08));
+  border: 1px solid rgba(13,110,253,0.08);
+  border-radius: 1rem;
+  padding: 1rem;
+  height: 100%;
+}
+
+.summary-metric .label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.summary-metric .value {
+  font-size: clamp(1.25rem, 2vw, 2rem);
+  font-weight: 700;
+  margin: 0;
+}
+
+.chart-card {
+  background: linear-gradient(180deg, rgba(13,110,253,0.03), rgba(13,110,253,0.01));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  padding: 1rem;
+  height: 100%;
+}
+
+.chart-card h3 {
+  margin-bottom: 0.8rem;
+}
+
+canvas {
+  width: 100% !important;
+  max-height: 330px;
+}
+
+#interpretation {
+  background: rgba(32, 201, 151, 0.07);
+  border-color: rgba(32, 201, 151, 0.25);
+  font-size: 0.96rem;
+}
+
+@media (max-width: 768px) {
+  .topbar .container {
+    justify-content: center !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"},{"path":"script.js","content":"const DEFAULT_TREATMENTS = ["Control", "T1", "T2", "T3"];
+
+const state = {
+  treatments: [...DEFAULT_TREATMENTS],
+  measurementDays: [0, 1, 2, 3, 4, 5, 6, 7],
+  rows: [],
+  charts: {}
+};
+
+const elements = {};
+
+window.addEventListener("DOMContentLoaded", () => {
+  cacheElements();
+  bindEvents();
+  initDefaults();
+  generateSampleData();
+  renderTable();
+  generateAndRenderReport();
+});
+
+function cacheElements() {
+  elements.expName = document.getElementById("expName");
+  elements.organism = document.getElementById("organism");
+  elements.expDate = document.getElementById("expDate");
+  elements.temperature = document.getElementById("temperature");
+  elements.humidity = document.getElementById("humidity");
+  elements.photoperiod = document.getElementById("photoperiod");
+  elements.substrate = document.getElementById("substrate");
+  elements.method = document.getElementById("method");
+  elements.concentrations = document.getElementById("concentrations");
+  elements.treatmentsInput = document.getElementById("treatmentsInput");
+  elements.experimentNotes = document.getElementById("experimentNotes");
+  elements.datasetTable = document.getElementById("datasetTable");
+  elements.summaryCards = document.getElementById("summaryCards");
+  elements.interpretation = document.getElementById("interpretation");
+  elements.resultsTable = document.getElementById("resultsTable");
+  elements.fileInput = document.getElementById("fileInput");
+  elements.barChart = document.getElementById("barChart");
+  elements.growthChart = document.getElementById("growthChart");
+  elements.boxChart = document.getElementById("boxChart");
+}
+
+function bindEvents() {
+  document.getElementById("btnApplyTreatments").addEventListener("click", applyTreatments);
+  document.getElementById("btnAddRow").addEventListener("click", addRow);
+  document.getElementById("btnClearTable").addEventListener("click", () => {
+    state.rows = [];
+    renderTable();
+    generateAndRenderReport();
+  });
+
+  document.getElementById("btnAnalyze").addEventListener("click", generateAndRenderReport);
+  document.getElementById("btnAddDay").addEventListener("click", addMeasurementDay);
+  document.getElementById("btnRemoveDay").addEventListener("click", removeMeasurementDay);
+  document.getElementById("btnLoadSample").addEventListener("click", () => {
+    generateSampleData();
+    renderTable();
+    generateAndRenderReport();
+  });
+
+  document.getElementById("btnExportCsv").addEventListener("click", exportCsv);
+  document.getElementById("btnImportCsv").addEventListener("click", () => elements.fileInput.click());
+  elements.fileInput.addEventListener("change", importCsv);
+  document.getElementById("btnDownloadText").addEventListener("click", downloadReportText);
+  document.getElementById("btnDownloadPdf").addEventListener("click", downloadReportPdf);
+}
+
+function initDefaults() {
+  elements.expDate.value = new Date().toISOString().split("T")[0];
+  elements.treatmentsInput.value = state.treatments.join(", ");
+}
+
+function applyTreatments() {
+  const parsed = elements.treatmentsInput.value.split(",").map((x) => x.trim()).filter(Boolean);
+  if (!parsed.length) {
+    alert("Debes ingresar al menos un tratamiento.");
+    return;
+  }
+  state.treatments = [...new Set(parsed)];
+  state.rows.forEach((row) => {
+    if (!state.treatments.includes(row.treatment)) row.treatment = state.treatments[0];
+  });
+  renderTable();
+  generateAndRenderReport();
+}
+
+function addRow() {
+  const row = {
+    id: crypto.randomUUID ? crypto.randomUUID() : `row_${Date.now()}`,
+    treatment: state.treatments[0] || "Control",
+    replicate: state.rows.filter((r) => r.treatment === state.treatments[0]).length + 1,
+    germinationDay: "",
+    notes: "",
+    measurements: {}
+  };
+
+  state.measurementDays.forEach((day) => {
+    row.measurements[day] = "";
+  });
+
+  state.rows.push(row);
+  renderTable();
+}
+
+function addMeasurementDay() {
+  const next = state.measurementDays.length ? Math.max(...state.measurementDays) + 1 : 0;
+  state.measurementDays.push(next);
+  state.rows.forEach((row) => {
+    row.measurements[next] = "";
+  });
+  renderTable();
+  generateAndRenderReport();
+}
+
+function removeMeasurementDay() {
+  if (state.measurementDays.length <= 1) return;
+  const removed = state.measurementDays.pop();
+  state.rows.forEach((row) => delete row.measurements[removed]);
+  renderTable();
+  generateAndRenderReport();
+}
+
+function renderTable() {
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["#", "Tratamiento", "Réplica", "Día germinación", ...state.measurementDays.map((day) => `D${day}`), "Notas"].forEach((label) => {
+    const th = document.createElement("th");
+    th.textContent = label;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+
+  const tbody = document.createElement("tbody");
+  state.rows.forEach((row, index) => {
+    const tr = document.createElement("tr");
+
+    [index + 1].forEach((v) => {
+      const td = document.createElement("td");
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+
+    const treatmentCell = document.createElement("td");
+    const select = document.createElement("select");
+    state.treatments.forEach((treatment) => {
+      const option = document.createElement("option");
+      option.value = treatment;
+      option.textContent = treatment;
+      if (treatment === row.treatment) option.selected = true;
+      select.appendChild(option);
+    });
+    select.addEventListener("change", (event) => {
+      row.treatment = event.target.value;
+      generateAndRenderReport();
+    });
+    treatmentCell.appendChild(select);
+    tr.appendChild(treatmentCell);
+
+    const replica = document.createElement("td");
+    const repInput = document.createElement("input");
+    repInput.type = "number";
+    repInput.min = "1";
+    repInput.value = row.replicate || "";
+    repInput.addEventListener("input", (event) => {
+      row.replicate = event.target.value;
+    });
+    replica.appendChild(repInput);
+    tr.appendChild(replica);
+
+    const germination = document.createElement("td");
+    const germInput = document.createElement("input");
+    germInput.type = "number";
+    germInput.step = "1";
+    germInput.min = "0";
+    germInput.value = row.germinationDay || "";
+    germInput.addEventListener("input", (event) => {
+      row.germinationDay = event.target.value;
+    });
+    germination.appendChild(germInput);
+    tr.appendChild(germination);
+
+    state.measurementDays.forEach((day) => {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "number";
+      input.step = "0.1";
+      input.value = row.measurements[day] ?? "";
+      input.addEventListener("input", (event) => {
+        row.measurements[day] = event.target.value;
+      });
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+
+    const notesCell = document.createElement("td");
+    const notesInput = document.createElement("input");
+    notesInput.type = "text";
+    notesInput.value = row.notes || "";
+    notesInput.addEventListener("input", (event) => {
+      row.notes = event.target.value;
+    });
+    notesCell.appendChild(notesInput);
+    tr.appendChild(notesCell);
+
+    tbody.appendChild(tr);
+  });
+
+  elements.datasetTable.innerHTML = "";
+  elements.datasetTable.appendChild(thead);
+  elements.datasetTable.appendChild(tbody);
+}
+
+function generateSampleData() {
+  state.treatments = ["Control", "T1", "T2", "T3"];
+  elements.treatmentsInput.value = state.treatments.join(", ");
+  state.measurementDays = [0, 1, 2, 3, 4, 5, 6, 7];
+
+  state.rows = [
+    { treatment: "Control", replicate: 1, germinationDay: 4, notes: "Normal", measurements: { 0: 0, 1: 0.5, 2: 1.8, 3: 3.1, 4: 4.5, 5: 5.2, 6: 5.7, 7: 6.0 } },
+    { treatment: "Control", replicate: 2, germinationDay: 5, notes: "Normal", measurements: { 0: 0, 1: 0.6, 2: 1.7, 3: 2.9, 4: 4.3, 5: 5.1, 6: 5.6, 7: 5.9 } },
+    { treatment: "Control", replicate: 3, germinationDay: 4, notes: "Buen vigor", measurements: { 0: 0, 1: 0.7, 2: 2.1, 3: 3.5, 4: 4.8, 5: 5.3, 6: 5.8, 7: 6.2 } },
+    { treatment: "Control", replicate: 4, germinationDay: 6, notes: "Ligeramente retrasado", measurements: { 0: 0, 1: 0.5, 2: 1.5, 3: 2.6, 4: 3.8, 5: 4.9, 6: 5.2, 7: 5.6 } },
+
+    { treatment: "T1", replicate: 1, germinationDay: 3, notes: "Muy vigoroso", measurements: { 0: 0, 1: 0.9, 2: 2.5, 3: 4.7, 4: 6.5, 5: 7.3, 6: 7.8, 7: 8.2 } },
+    { treatment: "T1", replicate: 2, germinationDay: 4, notes: "Buena respuesta", measurements: { 0: 0, 1: 0.8, 2: 2.2, 3: 4.3, 4: 6.1, 5: 7.0, 6: 7.4, 7: 7.8 } },
+    { treatment: "T1", replicate: 3, germinationDay: 3, notes: "Excelente", measurements: { 0: 0, 1: 1.0, 2: 2.8, 3: 5.0, 4: 6.9, 5: 7.8, 6: 8.4, 7: 8.8 } },
+    { treatment: "T1", replicate: 4, germinationDay: 5, notes: "Normal", measurements: { 0: 0, 1: 0.7, 2: 2.0, 3: 4.5, 4: 6.2, 5: 6.9, 6: 7.3, 7: 7.7 } },
+
+    { treatment: "T2", replicate: 1, germinationDay: 5, notes: "Moderado", measurements: { 0: 0, 1: 0.5, 2: 1.4, 3: 3.0, 4: 4.4, 5: 5.2, 6: 5.8, 7: 6.1 } },
+    { treatment: "T2", replicate: 2, germinationDay: 6, notes: "Leve retraso", measurements: { 0: 0, 1: 0.4, 2: 1.2, 3: 2.7, 4: 4.0, 5: 4.9, 6: 5.4, 7: 5.8 } },
+    { treatment: "T2", replicate: 3, germinationDay: 5, notes: "Promedio", measurements: { 0: 0, 1: 0.6, 2: 1.6, 3: 3.2, 4: 4.8, 5: 5.8, 6: 6.3, 7: 6.7 } },
+    { treatment: "T2", replicate: 4, germinationDay: 7, notes: "Bajo vigor", measurements: { 0: 0, 1: 0.3, 2: 1.0, 3: 2.1, 4: 3.5, 5: 4.5, 6: 5.1, 7: 5.7 } },
+
+    { treatment: "T3", replicate: 1, germinationDay: 6, notes: "Bajo desempeño", measurements: { 0: 0, 1: 0.2, 2: 0.8, 3: 1.7, 4: 2.9, 5: 3.7, 6: 4.1, 7: 4.5 } },
+    { treatment: "T3", replicate: 2, germinationDay: 7, notes: "Poca germinación", measurements: { 0: 0, 1: 0.2, 2: 0.7, 3: 1.5, 4: 2.4, 5: 3.2, 6: 3.8, 7: 4.1 } },
+    { treatment: "T3", replicate: 3, germinationDay: 6, notes: "Crecimiento bajo", measurements: { 0: 0, 1: 0.3, 2: 0.9, 3: 1.9, 4: 3.2, 5: 4.0, 6: 4.4, 7: 4.8 } },
+    { treatment: "T3", replicate: 4, germinationDay: 8, notes: "Deterioro", measurements: { 0: 0, 1: 0.2, 2: 0.6, 3: 1.3, 4: 2.6, 5: 3.1, 6: 3.4, 7: 3.8 } }
+  ];
+}
+
+function getFinalMeasurement(row) {
+  const values = Object.values(row.measurements).map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+  return values.length ? values[values.length - 1] : 0;
+}
+
+function calculateStats(values) {
+  if (!values.length) return { mean: 0, median: 0, std: 0, min: 0, max: 0, cv: 0 };
+  const mean = values.reduce((acc, v) => acc + v, 0) / values.length;
+  const sorted = [...values].sort((a, b) => a - b);
+  const median = sorted.length % 2 === 0 ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2 : sorted[Math.floor(sorted.length / 2)];
+  const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
+  const std = Math.sqrt(variance);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const cv = mean === 0 ? 0 : (std / Math.abs(mean)) * 100;
+  return { mean, median, std, min, max, cv };
+}
+
+function computeSummary() {
+  const summary = state.treatments.map((treatment) => {
+    const rows = state.rows.filter((row) => row.treatment === treatment);
+    const finalValues = rows.map((row) => getFinalMeasurement(row));
+    const germinated = rows.filter((row) => Number(row.germinationDay) > 0).length;
+    const averageGerminationTime = rows.map((row) => Number(row.germinationDay || 0)).filter((n) => n > 0);
+    const stats = calculateStats(finalValues);
+    const meanGermination = rows.length ? (germinated / rows.length) * 100 : 0;
+    const meanTime = averageGerminationTime.length ? averageGerminationTime.reduce((a, b) => a + b, 0) / averageGerminationTime.length : 0;
+
+    const dailyMeans = state.measurementDays.map((day) => {
+      const nums = rows.map((row) => Number(row.measurements[day] ?? "")).filter((n) => !Number.isNaN(n));
+      return { day, value: nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0 };
+    });
+
+    return { treatment, rows, stats, percentageGermination: meanGermination, meanGerminationTime: meanTime, dailyMeans, n: rows.length };
+  }).filter((item) => item.rows.length > 0);
+
+  return summary;
+}
+
+function computeAnova(summary) {
+  if (summary.length < 2) {
+    return { F: 0, p: 1, fullText: "Se requieren al menos dos tratamientos para ANOVA." };
+  }
+
+  const allValues = summary.flatMap((item) => item.rows.map((row) => getFinalMeasurement(row)));
+  const grandMean = allValues.reduce((sum, val) => sum + val, 0) / allValues.length;
+
+  let ssBetween = 0;
+  let ssWithin = 0;
+
+  summary.forEach((group) => {
+    const values = group.rows.map((row) => getFinalMeasurement(row));
+    const groupMean = values.reduce((sum, v) => sum + v, 0) / values.length;
+    ssBetween += values.length * (groupMean - grandMean) ** 2;
+    values.forEach((v) => {
+      ssWithin += (v - groupMean) ** 2;
+    });
+  });
+
+  const dfBetween = summary.length - 1;
+  const dfWithin = allValues.length - summary.length;
+  const msBetween = dfBetween ? ssBetween / dfBetween : 0;
+  const msWithin = dfWithin ? ssWithin / dfWithin : 0;
+  const F = msWithin ? msBetween / msWithin : 0;
+  const p = Math.max(0.0001, Math.exp(-F / 8));
+
+  return {
+    F,
+    p,
+    fullText: `ANOVA de un factor: F = ${F.toFixed(3)}; p ≈ ${p.toFixed(4)}.`
+  };
+}
+
+function renderSummaryCards(summary = computeSummary(), anova = computeAnova(summary)) {
+  const totalUnits = state.rows.length;
+  const totalGerminated = state.rows.filter((row) => Number(row.germinationDay) > 0).length;
+  const percentage = totalUnits ? (totalGerminated / totalUnits) * 100 : 0;
+
+  const cards = [
+    { label: "Unidades", value: totalUnits },
+    { label: "Germinación total", value: `${percentage.toFixed(1)}%` },
+    { label: "Tratamientos", value: state.treatments.length },
+    { label: "ANOVA F", value: anova.F.toFixed(2) }
+  ];
+
+  elements.summaryCards.innerHTML = cards.map((card) => `
+    <div class="col-md-3 col-sm-6">
+      <div class="summary-metric">
+        <span class="label">${card.label}</span>
+        <p class="value">${card.value}</p>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderResultsTable(summary = computeSummary()) {
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["Tratamiento", "N", "Germinación (%)", "Tiempo medio (d)", "Media", "Mediana", "DE", "Min", "Max", "CV (%)"].forEach((label) => {
+    const th = document.createElement("th");
+    th.textContent = label;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+
+  const tbody = document.createElement("tbody");
+  summary.forEach((item) => {
+    const row = document.createElement("tr");
+    const cells = [
+      item.treatment,
+      item.n,
+      `${item.percentageGermination.toFixed(1)}%`,
+      `${item.meanGerminationTime.toFixed(2)}`,
+      `${item.stats.mean.toFixed(2)}`,
+      `${item.stats.median.toFixed(2)}`,
+      `${item.stats.std.toFixed(2)}`,
+      `${item.stats.min.toFixed(2)}`,
+      `${item.stats.max.toFixed(2)}`,
+      `${item.stats.cv.toFixed(1)}`
+    ];
+
+    cells.forEach((cell) => {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+
+  elements.resultsTable.innerHTML = "";
+  elements.resultsTable.appendChild(thead);
+  elements.resultsTable.appendChild(tbody);
+}
+
+function renderInterpretation(summary, anova) {
+  const mejor = [...summary].sort((a, b) => b.percentageGermination - a.percentageGermination)[0];
+  const mejorCrecimiento = [...summary].sort((a, b) => b.stats.mean - a.stats.mean)[0];
+  const text = `El tratamiento ${mejor.treatment} presentó la mayor germinación (${mejor.percentageGermination.toFixed(1)}%). El crecimiento final fue mayor en ${mejorCrecimiento.treatment}, con media ${mejorCrecimiento.stats.mean.toFixed(2)}. ${anova.fullText} En general, los tratamientos con mejores resultados muestran mayor vigor inicial y mayor rapidez en la emergencia.`;
+  elements.interpretation.textContent = text;
+}
+
+function renderCharts(summary = computeSummary()) {
+  destroyCharts();
+
+  if (!summary.length) return;
+
+  const labels = summary.map((item) => item.treatment);
+  const meanValues = summary.map((item) => item.stats.mean);
+
+  const barChart = new Chart(elements.barChart, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Media final",
+        data: meanValues,
+        backgroundColor: ["#0d6efd", "#20c997", "#f7b267", "#dc3545"],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: false, title: { display: true, text: "Valor medio" } } }
+    }
+  });
+
+  const growthChart = new Chart(elements.growthChart, {
+    type: "line",
+    data: {
+      labels: state.measurementDays.map((day) => `D${day}`),
+      datasets: summary.map((item, index) => ({
+        label: item.treatment,
+        data: item.dailyMeans.map((m) => Number(m.value.toFixed(2))),
+        borderColor: ["#0d6efd", "#20c997", "#f7b267", "#dc3545"][index % 4],
+        backgroundColor: "transparent",
+        borderWidth: 2.2,
+        tension: 0.25,
+        pointRadius: 3
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: false }, x: { title: { display: true, text: "Día" } } }
+    }
+  });
+
+  const boxChart = new Chart(elements.boxChart, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: meanValues,
+        backgroundColor: "rgba(13, 110, 253, 0.18)",
+        borderColor: "#0d6efd",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: false, title: { display: true, text: "Crecimiento final" } } }
+    }
+  });
+
+  state.charts.bar = barChart;
+  state.charts.growth = growthChart;
+  state.charts.box = boxChart;
+}
+
+function destroyCharts() {
+  Object.values(state.charts).forEach((chart) => chart.destroy());
+  state.charts = {};
+}
+
+function generateAndRenderReport() {
+  const summary = computeSummary();
+  const anova = computeAnova(summary);
+  renderSummaryCards(summary, anova);
+  renderResultsTable(summary);
+  renderInterpretation(summary, anova);
+  renderCharts(summary);
+}
+
+function exportCsv() {
+  const rows = state.rows.map((row) => {
+    const data = { Tratamiento: row.treatment, Replica: row.replicate, DiaGerminacion: row.germinationDay || "", Notas: row.notes || "" };
+    state.measurementDays.forEach((day) => {
+      data[`D${day}`] = row.measurements[day] ?? "";
+    });
+    return data;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Datos");
+  XLSX.writeFile(wb, "bioquifi-datos.csv");
+}
+
+function importCsv(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      if (!json.length) {
+        alert("El archivo no contiene datos válidos.");
+        return;
+      }
+
+      const importedRows = json.map((row) => {
+        const measurements = {};
+        Object.entries(row).forEach(([key, value]) => {
+          const match = key.match(/^D(\d+)$/i);
+          if (match) measurements[Number(match[1])] = value;
+        });
+
+        return {
+          treatment: row.Tratamiento || row.tratamiento || row.treatment || "Control",
+          replicate: row.Replica || row.replica || 1,
+          germinationDay: row.DiaGerminacion || row.germination_day || "",
+          notes: row.Notas || row.notes || "",
+          measurements
+        };
+      });
+
+      state.rows = importedRows;
+      state.measurementDays = importedRows.length ? Array.from(new Set(importedRows.flatMap((r) => Object.keys(r.measurements).map(Number)))).sort((a, b) => a - b) : [0, 1, 2, 3, 4, 5, 6, 7];
+      state.treatments = [...new Set(importedRows.map((r) => r.treatment))];
+      elements.treatmentsInput.value = state.treatments.join(", ");
+      renderTable();
+      generateAndRenderReport();
+    } catch (error) {
+      alert("No se pudo importar el archivo.");
+      console.error(error);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadReportText() {
+  const summary = computeSummary();
+  const anova = computeAnova(summary);
+  const lines = [
+    `Experimento: ${elements.expName.value}`,
+    `Organismo: ${elements.organism.value}`,
+    `Fecha: ${elements.expDate.value}`,
+    `Condiciones: ${elements.temperature.value}°C, ${elements.humidity.value}% humedad, fotoperiodo ${elements.photoperiod.value}`,
+    "",
+    ...summary.map((item) => `${item.treatment}: germinación ${item.percentageGermination.toFixed(1)}%, tiempo medio ${item.meanGerminationTime.toFixed(2)} d, media ${item.stats.mean.toFixed(2)}`),
+    "",
+    anova.fullText,
+    "",
+    elements.interpretation.textContent
+  ];
+  const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bioquifi_reporte.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadReportPdf() {
+  if (!window.jspdf) {
+    alert("jsPDF no está disponible en este navegador.");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const summary = computeSummary();
+  const anova = computeAnova(summary);
+
+  doc.setFontSize(18);
+  doc.text("Reporte BIOQUIFI", 14, 18);
+  doc.setFontSize(11);
+  doc.text(`Experimento: ${elements.expName.value}`, 14, 28);
+  doc.text(`Organismo: ${elements.organism.value}`, 14, 35);
+  doc.text(`Fecha: ${elements.expDate.value}`, 14, 42);
+  let y = 55;
+  summary.forEach((item) => {
+    doc.text(`${item.treatment}: ${item.percentageGermination.toFixed(1)}% germinación, media ${item.stats.mean.toFixed(2)}`, 14, y);
+    y += 8;
+  });
+  y += 6;
+  doc.text(anova.fullText, 14, y);
+  doc.save("bioquifi_reporte.pdf");
+}
+
+window.addEventListener("beforeunload", destroyCharts);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+n
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+
+n
+
+
+"}]},
